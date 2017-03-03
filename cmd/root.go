@@ -18,7 +18,7 @@ var (
 	printVersion          = false
 
 	RootCmd = &cobra.Command{
-		Use:   "dockerrmi",
+		Use:   "dockerrmi [images]",
 		Short: "dockerrmi is a handy to remove docker images",
 		Long:  `a handy tool to delete user specified docker images along with related containers which use these images`,
 		Run: func(cmd *cobra.Command, args []string) {
