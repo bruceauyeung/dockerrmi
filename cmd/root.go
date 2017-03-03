@@ -7,6 +7,9 @@ import (
 	"os/exec"
 	"strings"
 
+	"bytes"
+	"errors"
+
 	"github.com/spf13/cobra"
 )
 
@@ -73,6 +76,12 @@ func run(args []string) {
 				pErrorln("invalid image format, must conform to \"repo:tag\"")
 			}
 		} else {
+			// two cases when image doesn't contain ":"
+			// delete image by id
+			// delete image by repo but tag ignored
+			// so just assume user wanna try these two cases, if more than one image are found, there will be an error
+			imageRepo = image
+			imageTag = "latest"
 			imageID = image
 		}
 		di, err := getImage(imageRepo, imageTag, imageID)
@@ -172,7 +181,12 @@ func getImage(repo, tag, imageID string) (*DockerImage, error) {
 		}
 	}
 	if len(found) > 1 {
-		return nil, fmt.Errorf("multiple images found according to id: %s, repo: %s, tag:%s\n", imageID, repo, tag)
+		var errStr bytes.Buffer
+		errStr.WriteString("multiple images found:")
+		for _, img := range found {
+			errStr.WriteString(fmt.Sprintf("\tid: %s, repo: %s, tag:%s\n", img.ID, img.Repo, img.Tag))
+		}
+		return nil, errors.New(errStr.String())
 	} else if len(found) == 0 {
 		return nil, fmt.Errorf(" image not found according to id: %s, repo: %s, tag:%s\n", imageID, repo, tag)
 	} else {
